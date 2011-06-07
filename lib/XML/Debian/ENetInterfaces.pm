@@ -10,11 +10,11 @@ XML::Debian::ENetInterfaces - Work with Debian's /etc/network/interfaces in XML.
 
 =head1 VERSION
 
-Version 0.01
+Version 0.02
 
 =cut
 
-our $VERSION = '0.01';
+our $VERSION = '0.02';
 
 use feature 'switch';
 #use Data::Dumper;
@@ -52,13 +52,13 @@ Just returns an object.
 =cut
 
 sub new {
-  my $type = shift;
-  return bless {}, $type;
+  my ($class) = @_;
+  return bless {}, $class;
 }
 
 =head2 lock
 
-By default, no arguments, creates an exclusive semephoric lock on at least the two files written to by this application.  Can be used to create a shared semephoric lock, like so:
+By default, no arguments, creates an exclusive semaphoric lock on at least the two files written to by this application.  Can be used to create a shared semaphoric lock, like so:
 
     use Fcntl qw(:flock);
     XML::Debian::ENetInterfaces::lock(LOCK_SH);
@@ -66,9 +66,10 @@ By default, no arguments, creates an exclusive semephoric lock on at least the t
 =cut
 
 sub lock {
-  my $lvl=shift(@_)||LOCK_EX;
+  my ($lvl)=@_;
+  $lvl||=LOCK_EX;
   relock($lvl) if ( @locked );
-  my $file=$ENV{INTERFACES}||q{/etc/network/interfaces};
+  my $file=$ENV{INTERFACES}||'/etc/network/interfaces';
   my $SEMAPHORE=$file.'.lck';
   sysopen($S,$SEMAPHORE,
     ($lvl==LOCK_SH?O_RDONLY:O_WRONLY)|O_CREAT|O_APPEND) or
@@ -79,17 +80,18 @@ sub lock {
 
 =head2 relock
 
-Used internally to detect inproper Round Trip locking.  May also be usefull to you.  Takes the same arguments as lock above.
+Used internally to detect in proper Round Trip locking.  May also be useful to you.  Takes the same arguments as lock above.
 
 =cut
 
 sub relock {
-  carp "Relocking, sounds like an issue with Round Trip.";
-  my $lvl=shift(@_)||LOCK_EX;
-  my $file = $ENV{INTERFACES}||q{/etc/network/interfaces};
-  carp "Relocking wrong file: $file" unless ( $file eq $locked[0] );
+  carp "Re-locking, sounds like an issue with Round Trip.";
+  my ($lvl)=@_;
+  $lvl||=LOCK_EX;
+  my $file = $ENV{INTERFACES}||'/etc/network/interfaces';
+  carp "Re-locking wrong file: $file" unless ( $file eq $locked[0] );
   croak "Semaphore not open." unless (defined $S);
-  flock($S, shift(@_)||LOCK_EX) or die "flock() failed for $file.lck: $!";
+  flock($S, $lvl) or die "flock() failed for $file.lck: $!";
   $locked[1] = $lvl;
 }
 
@@ -100,7 +102,7 @@ Close the existing lock.
 =cut
 
 sub unlock() {
-  my $file = $ENV{INTERFACES}||q{/etc/network/interfaces};
+  my $file = $ENV{INTERFACES}||'/etc/network/interfaces';
   carp "Unlocking wrong file: $file" unless ( $file eq $locked[0] );
   croak "Semaphore not open." unless (defined $S);
   close $S;
@@ -108,16 +110,10 @@ sub unlock() {
   @locked=();
 }
 
-sub retech {
-  my @lst;
-  map { push @lst, $_ if ($_); } @_;
-  return join q{ }, @lst;
-}
-
 sub identattr
 {
-  my $attr = $dom->createAttribute(shift @_);
-  my $str = shift @_;
+  my ($attr, $str)= @_;
+  $attr = $dom->createAttribute($attr); # Scary.
   while ($str =~ m/(.)/g) {
     given ($1){
       when (" ") { $attr->appendChild($dom->createEntityReference('#32')); }
@@ -136,7 +132,7 @@ Takes no arguments and returns a string containing XML.
 
 sub read() {
   my $RootName='etc_network_interfaces';
-  # NOTE: The example file uses 8 spcae indents, the DTD specifyes
+  # NOTE: The example file uses 8 space indents, the DTD specifies
   #       4 spaces as the default.
   # This cheat is used because DTD creation is not yet implemented.
   $dom = XML::LibXML->load_xml(string => <<END."<$RootName/>");
@@ -208,7 +204,7 @@ END
   # Any lock will do.
   my $waslocked = @locked;
   lock(LOCK_SH) unless ($waslocked);
-  my $file = $ENV{INTERFACES}||q{/etc/network/interfaces};
+  my $file = $ENV{INTERFACES}||'/etc/network/interfaces';
   open (my $INTER, '<', $file) or croak "Can't read $file: $!";
 
   my $domptr;
@@ -243,7 +239,7 @@ END
       next LINE;
     }
     # This loop could be done within the regex,
-    # though I originally wrote it this way...  no perticular reason.
+    # though I originally wrote it this way...  no particular reason.
     foreach my $rx (qr(auto),qr(allow-auto),qr(allow-[^ ]*),
 	qr(mapping),qr(iface)) {
       if ($ln =~ /^(\s*)($rx)\s+(\S*)\s*(.*)$/) {
@@ -267,11 +263,11 @@ END
 	    $element = $dom->createElement('auto');
 	    $element->addChild(identattr('_alias',$ele));
 	    $element->addChild(identattr('_indent',$ind));
-	    $element->appendChild($dom->createTextNode(retech($nam, $opt)));
+	    $element->appendChild($dom->createTextNode(join ' ', grep /./, $nam, $opt));
 	  }
 	  default {
 	    $element->addChild(identattr('_indent',$ind));
-	    $element->appendChild($dom->createTextNode(retech($nam, $opt)));
+	    $element->appendChild($dom->createTextNode(join ' ', grep /./, $nam, $opt));
 	  }
 	}
 	$root->appendChild($element);
@@ -320,7 +316,7 @@ END
     warn $ln;
   }
   close $INTER;
-# Should not hurt and is usefull for Round Trip detection.
+# Should not hurt and is useful for Round Trip detection.
 #  unlock() unless ($waslocked);
 
   my $out = $dom->toString(1);
@@ -330,21 +326,22 @@ END
 
 =head2 write
 
-  Takes either a string or a file handle, per IO::file understanding of what a file handle is, and passes this to XML::Parser::PerlSAX as a string.  Current versions of XML::Parser::PerlSAX treat this identically to an IO::file, though I guess one couldn't count on that continually being the case.
+Takes either a string or a file handle, per IO::file understanding of what a file handle is, and passes this to XML::Parser::PerlSAX as a string.  Current versions of XML::Parser::PerlSAX treat this identically to an IO::file, though I guess one couldn't count on that continually being the case.
 
 =cut
 
 sub write {
+  my ($inp) = @_;
   # Make sure the lock is exclusive.
   my $waslocked = (@locked and $locked[1]||-1==LOCK_EX);
   lock(LOCK_EX) unless ($waslocked);
-  my $file = $ENV{INTERFACES}||q{/etc/network/interfaces};
+  my $file = $ENV{INTERFACES}||'/etc/network/interfaces';
   open (my $INTER, '>', "$file.tmp") or die "Can't write $file.tmp: $!";
   my $handler = XML::Debian::ENetInterfaces::Handler->new($INTER);
   my $parser = XML::Parser::PerlSAX->new(
     Handler=>$handler,
     UseAttributeOrder=>1,
-    Source=>{String=>shift @_}
+    Source=>{String=>$inp}
   );
   $parser->parse();
 
@@ -363,8 +360,8 @@ use feature 'switch';
 #use Data::Dumper;
 
 sub new {
-  my $type = shift;
-  return bless {INTER=>shift}, $type;
+  my ($class,$outp) = @_;
+  return bless {INTER=>$outp}, $class;
 }
 
 my $last_element;
@@ -379,7 +376,7 @@ sub start_element {
     when(undef) { warn; }
     when('br') { print { *{$self->{INTER}} } "\n"; }
     when(['iface','mapping']) {
-      print { *{$self->{INTER}} } XML::Debian::ENetInterfaces::retech(
+      print { *{$self->{INTER}} } join(' ', grep /./, 
 	"$element->{Attributes}->{_indent}$last_alias",
 	$element->{Attributes}->{name},
 	$element->{Attributes}->{opts}),"\n";
@@ -448,28 +445,28 @@ The SOURCE parameter should either be a string containing the whole XML document
 
 =head1 XML
 
-The XML produced/expected is of a schema developed and designed by me specifically for this purpose.  IT MAY CHANGE in the future, though I wouldn't excpect any changes to be signifecent if not drastic.
+The XML produced/expected is of a schema developed and designed by me specifically for this purpose.  IT MAY CHANGE in the future, though I wouldn't expect any changes to be significant if not drastic.
 
 Comments on the schema are most welcome, I'd rather make changes sooner then later.
 
 =head1 LOCKING
 
-Locking in some cases is automatic, however in the Round Trip case (read/modify/write) that I needed when I wrote this and therfore might be the most common use of this module, the locking is not automatic.  See usage for help and see Round Trip for an explination.
+Locking in some cases is automatic, however in the Round Trip case (read/modify/write) that I needed when I wrote this and therefore might be the most common use of this module, the locking is not automatic.  See usage for help and see Round Trip for an explanation.
 
-Only does advisory locks on a semaphore file.  This lock is intended to protect the interfaces file and the temporary file used on writes.  A temp file is used to avoid problems where ifup/down might try and read the file while it's being written out, remember these locks do nothing to prevent ifup/down or any other program from accessing/changing the interfaces file directly.  You must ensure that, other then the ifup/down applications, any other user of the interfaces file makes use of the semaphore used by this module, you can use theis modules API or duplicate the concept in your own way.
+Only does advisory locks on a semaphore file.  This lock is intended to protect the interfaces file and the temporary file used on writes.  A temp file is used to avoid problems where ifup/down might try and read the file while it's being written out, remember these locks do nothing to prevent ifup/down or any other program from accessing/changing the interfaces file directly.  You must ensure that, other then the ifup/down applications, any other user of the interfaces file makes use of the semaphore used by this module, you can use this modules API or duplicate the concept in your own way.
 
 
 =head1 ROUND TRIP
 
-For this module this has two distinct meanings.  Firstly it's a goal of this module to round trip with no chagne to the file, in most cases the file will be identicle(have the same md5/sha1) as the original.  The inode number is changed as a result of using a temporary file.
+For this module this has two distinct meanings.  Firstly it's a goal of this module to round trip with no change to the file, in most cases the file will be identical(have the same md5/sha1) as the original.  The inode number is changed as a result of using a temporary file.
 
-The second meaning is read/modify/write.  In this case the contents will not be identicle.  You should make sure to lock the interfaces file exlusivly(just call this module's lock function with no paramiters) prior to the read, this is because there is a race condition during changeing the lock type where another writer can get overriten.
+The second meaning is read/modify/write.  In this case the contents will not be identical.  You should make sure to lock the interfaces file exclusivity(just call this module's lock function with no parameters) prior to the read, this is because there is a race condition during changing the lock type where another writer can get over written.
 
 =head1 XML::Debian::ENetInterfaces::Handler
 
-Document this?  meh, it's a lot of complecated code for taking XML and turning it into a file that represents the idea expressed in the XML as a /etc/network/interfaces file.
+Document this?  meh, it's a lot of complicated code for taking XML and turning it into a file that represents the idea expressed in the XML as a /etc/network/interfaces file.
 
-...In other words if you have to ask you can read it for yourself, other whise leave this alone.
+...In other words if you have to ask you can read it for yourself, other wise leave this alone.
 
 =head1 AUTHOR
 
@@ -477,11 +474,11 @@ Michael Mestnik, C<< <cheako+cpan at mikemestnik.net> >>
 
 =head1 BUGS
 
-I had put together a short list of these in my head, but I belive I've corrected most of them ;)
+I had put together a short list of these in my head, but I believe I've corrected most of them ;)
 
-One note is that the source code remarks several locations where white-space could be altered during a round trip.  Most notably the "non-reapeating" chield options share a single indentaion whitespace, the first non-reapeating chield's indentation is authorative.
+One note is that the source code remarks several locations where white-space could be altered during a round trip.  Most notably the "non-repeating" child options share a single indentation whitespace, the first non-repeating child's indentation is authoritative.
 
-The DTD is not complete with regard to add-on modules, like wierless, bridges, ect.  I'm unsure of how modular a DTD can be, but I suspect the best way is for each add-on extend the DTD on there own...  However I will take additions to the module included DTD for most if not all the add-on modules that submit to me there DTD.
+The DTD is not complete with regard to add-on modules, like wireless, bridges, ect.  I'm unsure of how modular a DTD can be, but I suspect the best way is for each add-on extend the DTD on there own...  However I will take additions to the module included DTD for most if not all the add-on modules that submit to me there DTD.
 
 Please report any bugs or feature requests to C<bug-xml-debian-enetinterfaces at rt.cpan.org>, or through
 the web interface at L<http://rt.cpan.org/NoAuth/ReportBug.html?Queue=XML-Debian-ENetInterfaces>.  I will be notified, and then you'll

@@ -2,7 +2,7 @@ XML-Debian-ENetInterfaces
 
 VERSION
 
-0.01
+0.02
 
 Built and tested with:
 This is perl, v5.10.1 (*) built for x86_64-linux-gnu-thread-multi

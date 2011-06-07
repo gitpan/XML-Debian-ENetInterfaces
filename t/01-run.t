@@ -1,6 +1,6 @@
 #!perl -T
 
-use Test::More tests => 4;
+use Test::More tests => 5;
 use Fcntl qw(:flock);
 use XML::Debian::ENetInterfaces;
 # TODO: Test the lock detection stuff.
@@ -50,30 +50,25 @@ close *FH; }
 
 eq_or_diff $intout, $intdat, 'Write out provided xml compare to provided interfaces.';
 
-# All things being equil then the other itterations shouldn't matter.
+# All things being equal then the other iterations shouldn't matter.
 
 SKIP: {
-      skip q{Can't find interfaces, not likely Debian/Ubuntu/ect.}, 2 unless -f $sysint;
+      skip q{Can't find interfaces, not likely Debian/Ubuntu/ect.}, 3 unless -f $sysint;
 
 $ENV{INTERFACES}=q{/tmp/dontfreak};
 XML::Debian::ENetInterfaces::lock();
-# No we are locked.  So no more chagnes to the lockfiles, reading /etc/network/interfaces.
+# No we are locked.  So no more changes to the lock files, reading /etc/network/interfaces.
 delete $ENV{INTERFACES};
 $xmldat = XML::Debian::ENetInterfaces::read();
 $ENV{INTERFACES}=q{/tmp/dontfreak};
 XML::Debian::ENetInterfaces::unlock();
 
+ok($xmldat, 'Read system interfaces into memory.');
+
 $ENV{INTERFACES} = $writename;
 XML::Debian::ENetInterfaces::lock();
 XML::Debian::ENetInterfaces::write($xmldat);
 XML::Debian::ENetInterfaces::unlock();
-
-# Now to test the round trip.
-XML::Debian::ENetInterfaces::lock(LOCK_SH);
-my $xmlstr = XML::Debian::ENetInterfaces::read();
-XML::Debian::ENetInterfaces::unlock();
-
-eq_or_diff $xmlstr, $xmldat, 'Read in system interfaces compare to round trip xml.';
 
 my $sysdat;
 { local *FH;
@@ -87,6 +82,14 @@ open( *FH, $writename) || die("Error: $!\n");
 -f *FH and sysread *FH, $locdat, -s *FH;
 close *FH; }
 
-eq_or_diff $locdat, $sysdat, 'Read in system interfaces compare to round trip interfaces.';
+eq_or_diff $locdat, $sysdat, 'Write out interfaces compare to system interfaces.';
+
+# Now to test the round trip.
+XML::Debian::ENetInterfaces::lock(LOCK_SH);
+my $xmlstr = XML::Debian::ENetInterfaces::read();
+XML::Debian::ENetInterfaces::unlock();
+
+eq_or_diff $xmlstr, $xmldat, 'Read in written interfaces compare to xml written.';
+
 }
 

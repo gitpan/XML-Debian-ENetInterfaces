@@ -1,5 +1,19 @@
 Revision history for XML-Debian-ENetInterfaces
 
+0.02	Tue Jun  7 00:10:15 CDT 2011
+====================================
+	Incorporated comments from uri, rewt, Somni from IRC.
+	    ... Though I'm likely unable to fully comprehend
+		there advice it's still welcome.
+	  Don't use shift to get sub args.
+	  What is passed to new isn't a type.
+	  Don't use q{}.
+	  Redo retech, my own words.
+	  Use spell check.
+
+	Made test output more readable.
+	Fixed indent in write's POD.
+
 0.01    Mon Jun  6 19:26:08 CDT 2011
 ====================================
         First version, released on an unsuspecting world.
