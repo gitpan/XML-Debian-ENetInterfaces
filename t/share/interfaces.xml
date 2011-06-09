@@ -68,7 +68,7 @@
     <COMMENT># An example ethernet card setup: (broadcast and gateway are optional)</COMMENT>
     <COMMENT>#</COMMENT>
   </iface>
-  <auto _indent="">eth0</auto>
+  <auto _indent="&#9;&#32;&#32;">eth0</auto>
   <iface name="eth0" opts="inet static" _indent="" _childindent="&#32;&#32;&#32;&#32;" address="192.168.0.42" network="192.168.0.0" netmask="255.255.255.0" broadcast="192.168.0.255" gateway="192.168.0.1">
     <br/>
     <COMMENT># A more complicated ethernet setup, with a less common netmask, and a downright</COMMENT>
@@ -76,7 +76,7 @@
     <COMMENT># interface is brought up, the "down" lines when it's brought down)</COMMENT>
     <COMMENT>#</COMMENT>
   </iface>
-  <auto _indent="">eth0</auto>
+  <auto _indent="&#32;&#32;">eth0</auto>
   <iface name="eth0" opts="inet static" _indent="" _childindent="&#32;&#32;&#32;&#32;" address="192.168.1.42" network="192.168.1.0" netmask="255.255.255.128" broadcast="192.168.1.0">
     <up _indent="&#32;&#32;&#32;&#32;">route add -net 192.168.1.128 netmask 255.255.255.128 gw 192.168.1.2</up>
     <up _indent="&#32;&#32;&#32;&#32;">route add default gw 192.168.1.200</up>

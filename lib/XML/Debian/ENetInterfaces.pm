@@ -10,11 +10,11 @@ XML::Debian::ENetInterfaces - Work with Debian's /etc/network/interfaces in XML.
 
 =head1 VERSION
 
-Version 0.03
+Version 0.04
 
 =cut
 
-our $VERSION = '0.03';
+our $VERSION = '0.04';
 
 use feature 'switch';
 #use Data::Dumper;
@@ -110,7 +110,7 @@ sub unlock() {
   @locked=();
 }
 
-sub identattr
+sub __identattr
 {
   my ($attr, $str)= @_;
   $attr = $dom->createAttribute($attr); # Scary.
@@ -250,23 +250,23 @@ END
 	  when('mapping') {
 	    $element->addChild($dom->createAttribute('name', $nam));
 	    $element->addChild($dom->createAttribute('opts', $opt));
-	    $element->addChild(identattr('_indent',$ind));
+	    $element->addChild(__identattr('_indent',$ind));
 	    $domptr = $element;
 	  }
 	  when('iface') {
 	    $element->addChild($dom->createAttribute('name', $nam));
 	    $element->addChild($dom->createAttribute('opts', $opt));
-	    $element->addChild(identattr('_indent',$ind));
+	    $element->addChild(__identattr('_indent',$ind));
 	    $domptr = $element;
 	  }
 	  when('allow-auto') {
 	    $element = $dom->createElement('auto');
-	    $element->addChild(identattr('_alias',$ele));
-	    $element->addChild(identattr('_indent',$ind));
+	    $element->addChild(__identattr('_alias',$ele));
+	    $element->addChild(__identattr('_indent',$ind));
 	    $element->appendChild($dom->createTextNode(join ' ', grep /./, $nam, $opt));
 	  }
 	  default {
-	    $element->addChild(identattr('_indent',$ind));
+	    $element->addChild(__identattr('_indent',$ind));
 	    $element->appendChild($dom->createTextNode(join ' ', grep /./, $nam, $opt));
 	  }
 	}
@@ -283,27 +283,27 @@ END
 	    my $aele = $ele;
 	    $aele=~s/^.*(up|down)/$1/;
 	    my $element = $dom->createElement($aele);
-	    $element->addChild(identattr('_alias',$ele));
-	    $element->addChild(identattr('_indent',$ind));
+	    $element->addChild(__identattr('_alias',$ele));
+	    $element->addChild(__identattr('_indent',$ind));
 	    $element->appendChild($dom->createTextNode($dat));
 	    $domptr->appendChild($element);
 	  }
 	  when('map') {
 	    carp unless ($domptr->tagName eq 'mapping');
 	    my $element = $dom->createElement($ele);
-	    $element->addChild(identattr('_indent',$ind));
+	    $element->addChild(__identattr('_indent',$ind));
 	    $element->appendChild($dom->createTextNode($dat));
 	    $domptr->appendChild($element);
 	  }
 	  when(['up','down','pre-up','post-down']) {
 	    carp unless ($domptr->tagName eq 'iface');
 	    my $element = $dom->createElement($ele);
-	    $element->addChild(identattr('_indent',$ind));
+	    $element->addChild(__identattr('_indent',$ind));
 	    $element->appendChild($dom->createTextNode($dat));
 	    $domptr->appendChild($element);
 	  }
 	  default {
-	    $domptr->addChild(identattr('_childindent',$ind))
+	    $domptr->addChild(__identattr('_childindent',$ind))
 	      unless (defined $domptr->getAttributeNode('_childindent') );
 	    $domptr->addChild($dom->createAttribute($ele,$dat));
 	  }
@@ -418,7 +418,7 @@ sub characters {
     when([undef,'etc_network_interfaces','iface','mapping']) {}
     when('COMMENT') { print { *{$self->{INTER}} } "$characters->{Data}\n"; }
     when(['up','down','post-up','pre-down','auto',/allow-[^ ]*/]) { print { *{$self->{INTER}} } "$indent$last_alias $characters->{Data}\n"; }
-    default { print { *{$self->{INTER}} } "$childindent$last_alias $characters->{Data}\n"; }
+    default { print { *{$self->{INTER}} } "$indent$last_alias $characters->{Data}\n"; }
   }
 }
 

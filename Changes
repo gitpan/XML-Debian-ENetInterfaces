@@ -1,9 +1,28 @@
 Revision history for XML-Debian-ENetInterfaces
 
+0.04	Wed Jun  8 19:01:10 CDT 2011
+====================================
+	Add __ prefix to private function identattr.
+	Fixed bug regarding files with varying indent.
+	Changed included dataset to test for this.
+	Corrected 2 problems with Makefile.PL
+	  $ExtUtils::MakeMaker::VERSION is not yet numeric.
+	  Make use of propper way to express min perl version.
+
+	!!WARNING!! - This effects every previous version of this module.
+	Workes from v5.10.0 to v5.13.7.
+	From v5.13.8 to v5.13.10 is unknown/untested.
+	v5.13.11 to v5.14.0 is known not to work!
+	Upgrading to following SVN Commit is one solution.
+	  v5.15 (f6a9f8a45e0553298d2b10c734f5826f1ba7730f)
+	No way to express the above constright(s).
+
+	I pray v5.14.1 has a fix for this issue.
+
 0.03	Tue Jun  7 00:24:12 CDT 2011
 ====================================
 	We all mess up some times.
-	This is the just becasue I made a mistake with 0.02
+	This is the just because I made a mistake with 0.02
 	The Changes file has a date/time now.
 
 0.02	Tue Jun  7 00:10:15 CDT 2011
