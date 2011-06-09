@@ -6,8 +6,6 @@ use XML::Debian::ENetInterfaces;
 # TODO: Test the lock detection stuff.
 # DOES: Forces locking to avoid hitting the lock detection stuff.
 
-# copy $ENV{INTERFACES}, ${./t/share/interfaces-out};
-
 BEGIN {
     if (!eval q{ use Test::Differences; 1 }) {
         *eq_or_diff = \&is_deeply;
@@ -53,7 +51,7 @@ eq_or_diff $intout, $intdat, 'Write out provided xml compare to provided interfa
 # All things being equal then the other iterations shouldn't matter.
 
 SKIP: {
-      skip q{Can't find interfaces, not likely Debian/Ubuntu/ect.}, 3 unless -f $sysint;
+      skip q{Can't find interfaces, not likely Debian/Ubuntu/ect.}, 3 unless (-f $sysint and -r $sysint);
 
 $ENV{INTERFACES}=q{/tmp/dontfreak};
 XML::Debian::ENetInterfaces::lock();

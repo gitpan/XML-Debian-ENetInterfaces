@@ -10,11 +10,11 @@ XML::Debian::ENetInterfaces - Work with Debian's /etc/network/interfaces in XML.
 
 =head1 VERSION
 
-Version 0.04
+Version 0.05
 
 =cut
 
-our $VERSION = '0.04';
+our $VERSION = '0.05';
 
 use feature 'switch';
 #use Data::Dumper;
@@ -40,7 +40,8 @@ Import/Export Debian /etc/network/interfaces from/to XML.
     XML::Debian::ENetInterfaces::lock(); # Optionally takes a Fcntl/flock
 	# constant like LOCK_SH
     my $xmlstr = XML::Debian::ENetInterfaces::read();
-    XML::Debian::ENetInterfaces::write('XML String'||IO::File->new('file','r'));
+    XML::Debian::ENetInterfaces::write('XML String'||
+	IO::Handle->new('file','r'));
     XML::Debian::ENetInterfaces::unlock();
 
 =head1 SUBROUTINES/METHODS
@@ -326,7 +327,9 @@ END
 
 =head2 write
 
-Takes either a string or a file handle, per IO::file understanding of what a file handle is, and passes this to XML::Parser::PerlSAX as a string.  Current versions of XML::Parser::PerlSAX treat this identically to an IO::file, though I guess one couldn't count on that continually being the case.
+Takes either a string or a file handle, per IO::Handle understanding of what a file handle is, and passes this to XML::Parser::PerlSAX as a string.  Current versions of XML::Parser::PerlSAX treat this identically to an IO::Handle, though I guess one couldn't count on that continually being the case.
+
+Passed to XML-Parser-2.41(XML::Parser->parse($parse_options->{Source}{String})), libxml-perl-0.08(XML::Parser::PerlSAX->new({Source=>{String=>$_[0]}}))'s back-end.
 
 =cut
 
@@ -370,13 +373,14 @@ my $childindent;
 my $indent;
 sub start_element {
   my ($self, $element) = @_;
+  my $fh = $self->{INTER};
   $last_element=$element->{Name};
   $last_alias=$element->{Attributes}->{_alias}||$last_element;
   given ($last_element){
     when(undef) { warn; }
-    when('br') { print { *{$self->{INTER}} } "\n"; }
+    when('br') { print $fh "\n"; }
     when(['iface','mapping']) {
-      print { *{$self->{INTER}} } join(' ', grep /./, 
+      print $fh join(' ', grep /./, 
 	"$element->{Attributes}->{_indent}$last_alias",
 	$element->{Attributes}->{name},
 	$element->{Attributes}->{opts}),"\n";
@@ -388,7 +392,7 @@ sub start_element {
       delete $element->{Attributes}->{_childindent};
       for (@{$element->{AttributeOrder}}) {
 	my $tmp = $_;
-	print { *{$self->{INTER}} } "$childindent$tmp $element->{Attributes}->{$tmp}\n"
+	print $fh "$childindent$tmp $element->{Attributes}->{$tmp}\n"
 	  unless ($tmp =~ /^_/ or !defined $element->{Attributes}->{$tmp});
       }
     }
@@ -413,12 +417,16 @@ sub end_element {
 
 sub characters {
   my ($self, $characters) = @_;
+  my $fh = $self->{INTER};
 #  warn Dumper(\$characters);
+  my $hack='__NEVERMATCH';
   given ($last_element){
     when([undef,'etc_network_interfaces','iface','mapping']) {}
-    when('COMMENT') { print { *{$self->{INTER}} } "$characters->{Data}\n"; }
-    when(['up','down','post-up','pre-down','auto',/allow-[^ ]*/]) { print { *{$self->{INTER}} } "$indent$last_alias $characters->{Data}\n"; }
-    default { print { *{$self->{INTER}} } "$indent$last_alias $characters->{Data}\n"; }
+    when('COMMENT') { print $fh "$characters->{Data}\n"; }
+    when(/allow-[^ ]*/) { $hack=$last_element; continue; }
+    when(['up','down','post-up','pre-down','auto',$hack]) {
+      print $fh "$indent$last_alias $characters->{Data}\n"; }
+    default { print $fh "$indent$last_alias $characters->{Data}\n"; }
   }
 }
 

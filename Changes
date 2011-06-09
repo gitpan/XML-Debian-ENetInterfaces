@@ -1,5 +1,35 @@
 Revision history for XML-Debian-ENetInterfaces
 
+0.05	
+====================================
+	Removed a comment in t/01-run.t that was for my brain.
+	Corrected some documentation s/IO::[^ ]*/IO::Handle/g
+	  per XML-Parser-2.41,
+	    libxml-perl-0.08(XML::Parser::PerlSAX)'s back-end.
+	Increased documentation regarding this.
+	Spell-check.
+	Added test case for ARRAY implementation of ~~.
+	Implemented hack/workaround regarding the following
+	  warning.  The warning is not obsolete, this version
+	  should run with any version post 5.10.
+
+	NOTE NOTE !!UPDATE WARNING!! NOTE NOTE
+	THIS NO LONGER APPLIES TO _THIS_ VERSION.
+	This message exists for the sake of complete documentation.
+	Works from v5.10.0 to v5.13.7.
+	v5.13.8 is unknown/untested.
+	v5.13.9 to v5.14.0 is known not to work!
+	Upgrading to following SVN Commit is one solution.
+	  v5.15 (f6a9f8a45e0553298d2b10c734f5826f1ba7730f)
+	No way to express the above constraint(s).
+
+	I pray v5.14.1 has a fix for this issue.
+
+	More information, this has something TODO with the
+	ARRAY implementation of ~~ with regard to undefined
+	and regex-es.  This effects give/when blocks used by
+	this module.
+
 0.04	Wed Jun  8 19:01:10 CDT 2011
 ====================================
 	Add __ prefix to private function identattr.
@@ -7,15 +37,15 @@ Revision history for XML-Debian-ENetInterfaces
 	Changed included dataset to test for this.
 	Corrected 2 problems with Makefile.PL
 	  $ExtUtils::MakeMaker::VERSION is not yet numeric.
-	  Make use of propper way to express min perl version.
+	  Make use of proper way to express min perl version.
 
 	!!WARNING!! - This effects every previous version of this module.
-	Workes from v5.10.0 to v5.13.7.
+	Works from v5.10.0 to v5.13.7.
 	From v5.13.8 to v5.13.10 is unknown/untested.
 	v5.13.11 to v5.14.0 is known not to work!
 	Upgrading to following SVN Commit is one solution.
 	  v5.15 (f6a9f8a45e0553298d2b10c734f5826f1ba7730f)
-	No way to express the above constright(s).
+	No way to express the above constraint(s).
 
 	I pray v5.14.1 has a fix for this issue.
 
@@ -37,7 +67,7 @@ Revision history for XML-Debian-ENetInterfaces
 	  Use spell check.
 
 	Made test output more readable.
-	Fixed indent in write's POD.
+	Fixed indent in writes POD.
 
 0.01    Mon Jun  6 19:26:08 CDT 2011
 ====================================

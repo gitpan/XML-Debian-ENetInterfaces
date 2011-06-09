@@ -4,7 +4,8 @@ Makefile.PL
 README
 lib/XML/Debian/ENetInterfaces.pm
 t/00-load.t
-t/01-run.t
+t/05-perl.t
+t/10-run.t
 t/manifest.t
 t/pod-coverage.t
 t/pod.t
