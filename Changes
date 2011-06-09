@@ -1,6 +1,10 @@
 Revision history for XML-Debian-ENetInterfaces
 
-0.05	
+0.06	Thu Jun  9 18:41:03 CDT 2011
+====================================
+	Forgot to add time stamp to Changes for 0.05.
+
+0.05	Thu Jun  9 18:36:32 CDT 2011
 ====================================
 	Removed a comment in t/01-run.t that was for my brain.
 	Corrected some documentation s/IO::[^ ]*/IO::Handle/g

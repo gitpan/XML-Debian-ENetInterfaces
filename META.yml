@@ -1,6 +1,6 @@
 --- #YAML:1.0
 name:               XML-Debian-ENetInterfaces
-version:            0.05
+version:            0.06
 abstract:           Work with Debian's /etc/network/interfaces in XML.
 author:
     - Michael Mestnik <cheako+cpan@mikemestnik.net>

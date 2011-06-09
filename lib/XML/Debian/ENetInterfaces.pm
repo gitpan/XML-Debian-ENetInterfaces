@@ -10,11 +10,11 @@ XML::Debian::ENetInterfaces - Work with Debian's /etc/network/interfaces in XML.
 
 =head1 VERSION
 
-Version 0.05
+Version 0.06
 
 =cut
 
-our $VERSION = '0.05';
+our $VERSION = '0.06';
 
 use feature 'switch';
 #use Data::Dumper;
