@@ -1,5 +1,18 @@
 Revision history for XML-Debian-ENetInterfaces
 
+0.07	Sat Jun 11 18:34:09 CDT 2011
+====================================
+	Learning new things all the time, made use of eval in tests.
+	Added no warnings where appropriate in perl tests.
+	Reworked over the perl tests.
+	Use qr to quote regexes in arrays for perl tests.
+	Code for when where undef was part of an array was split
+	  into another when clause to be more compatible with
+	  various perl versions.
+
+	Version 0.08 comming soon with addition to XML schema,
+	  adding attributes after and before parent attributes.
+
 0.06	Thu Jun  9 18:41:03 CDT 2011
 ====================================
 	Forgot to add time stamp to Changes for 0.05.

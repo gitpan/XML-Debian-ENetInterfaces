@@ -10,11 +10,11 @@ XML::Debian::ENetInterfaces - Work with Debian's /etc/network/interfaces in XML.
 
 =head1 VERSION
 
-Version 0.06
+Version 0.07
 
 =cut
 
-our $VERSION = '0.06';
+our $VERSION = '0.07';
 
 use feature 'switch';
 #use Data::Dumper;
@@ -421,7 +421,8 @@ sub characters {
 #  warn Dumper(\$characters);
   my $hack='__NEVERMATCH';
   given ($last_element){
-    when([undef,'etc_network_interfaces','iface','mapping']) {}
+    when(undef) {}
+    when(['etc_network_interfaces','iface','mapping']) {}
     when('COMMENT') { print $fh "$characters->{Data}\n"; }
     when(/allow-[^ ]*/) { $hack=$last_element; continue; }
     when(['up','down','post-up','pre-down','auto',$hack]) {
